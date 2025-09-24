@@ -3,30 +3,36 @@
 import { ImageResponse } from "next/og"
 import { getProductBySlug } from "@/lib/products"
 import React from "react"
+import { notFound } from "next/navigation"
+import { join } from "path"
+import { promises as fs } from "fs"
 
-export const runtime = "edge"
+// IMPORTANT: Change the runtime to Node.js to avoid the 1MB Edge Function size limit
+export const runtime = "nodejs"
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const slug = searchParams.get("slug") || ""
-  // 1. Get the new 'variant' parameter from the URL
   const variantName = searchParams.get("variant") || ""
 
   const product = await getProductBySlug(slug)
-  const name = product?.name || "Peptide Vial"
 
-  const fontData = await fetch(
-    new URL("../../../assets/Inter-Bold.ttf", import.meta.url),
-  ).then((res) => res.arrayBuffer())
+  if (!product) {
+    notFound()
+  }
 
-  const imageData = await fetch(
-    new URL("../../../assets/Base_logo_research.png", import.meta.url),
-  ).then((res) => res.arrayBuffer())
+  const name = product.name
+
+  // Load the font and image directly from the file system using the correct path
+  const fontPath = join(process.cwd(), "assets/Inter-Bold.ttf")
+  const imagePath = join(process.cwd(), "assets/Base_logo_research.png")
+
+  const fontData = await fs.readFile(fontPath)
+  const imageData = await fs.readFile(imagePath)
 
   const base64Image = Buffer.from(imageData).toString("base64")
   const imageSrc = `data:image/png;base64,${base64Image}`
 
-  // Font sizing logic for the main title
   const maxChars = 20
   const baseFontSize = 28
   const shrinkFactor = 1.2
@@ -44,7 +50,7 @@ export async function GET(request: Request) {
           height: "100%",
           backgroundColor: "#f1f5f9",
           display: "flex",
-          flexDirection: "column", // Changed to column for stacking text
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
@@ -52,7 +58,6 @@ export async function GET(request: Request) {
         },
       },
       [
-        // Base image
         React.createElement("img", {
           src: imageSrc,
           alt: "Base Vial",
@@ -63,8 +68,6 @@ export async function GET(request: Request) {
             objectFit: "contain",
           },
         }),
-
-        // This container will hold both lines of text
         React.createElement(
           "div",
           {
@@ -74,7 +77,7 @@ export async function GET(request: Request) {
               left: "305px",
               transform: "translate(-50%, -50%)",
               display: "flex",
-              flexDirection: "column", // Stack text vertically
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
               width: "240px",
@@ -84,7 +87,6 @@ export async function GET(request: Request) {
             },
           },
           [
-            // 2. Main product name
             React.createElement(
               "div",
               {
@@ -97,16 +99,15 @@ export async function GET(request: Request) {
               },
               name,
             ),
-            // 3. Variant name (only renders if a variantName was passed)
             variantName &&
               React.createElement(
                 "div",
                 {
                   style: {
                     color: "#475569",
-                    fontSize: 20, // Smaller font for the variant
+                    fontSize: 20,
                     fontWeight: 500,
-                    marginTop: "4px", // Space between title and variant
+                    marginTop: "4px",
                     lineHeight: 1,
                   },
                 },
