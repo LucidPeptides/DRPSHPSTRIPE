@@ -1,0 +1,21 @@
+{
+  "name": "Dropship Peptides",
+  "short_name": "Dropship Peptides",
+  "description": "Professional peptides catalogue for research purposes",
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#1a535c",
+  "background_color": "#f8f9fa",
+  "display": "standalone",
+  "start_url": "/"
+}
